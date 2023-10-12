@@ -35,7 +35,7 @@ for i=1:length(BlockNo)
     Rawdatapath(i).Nexus=fullfile(Subjectfolderpath,'\',BlockNo{i},'\Nexus\');
 end
 
-Filessavefolder=[Subjectfoldername,'_syndata (', datestr(datetime('today')),')']
+Filessavefolder=[Subjectfoldername,'_syncdata (', datestr(datetime('today')),')']
 mkdir(Filessavefolder);
 %% Using EEGLab to import data ()
 % Load EEG
@@ -130,4 +130,5 @@ for k=1:length(Rawdatapath)
         EEG = pop_saveset(EEG, [Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.set'],[cd,'\',Filessavefolder]);
     end
 end
+
 
