@@ -13,11 +13,16 @@
 % The script will creat a folder in your current folder and save the generated .set files in this folder. 
 %
 % Please indicate the folder of the participant (Subject-level)
+% Usage:
+%   >> DataSyn('Subjectfolderpath');
+%   >> EEG = pop_saveset( EEG, 'key', 'val', ...); 
 
-function [EEG, syncdata]=DataSyn(Subjectfolderpath)
+function [Experiment, Syncarray]=DataSyn(Subjectfolderpath)
+Experiment=struct();
+Syncarray=struct();
 
 % Subjectfolderpath (char) has to be a directory
-[Parentfolderpath,Subjectfoldername,ext] = fileparts(Subjectfolderpath)
+[Parentfolderpath,Subjectfoldername,~] = fileparts(Subjectfolderpath);
 
 % Recognize the folders (Block-level)
 fileslevel1=dir(Subjectfolderpath);
@@ -30,17 +35,15 @@ for i=1:length(BlockNo)
     Rawdatapath(i).Nexus=fullfile(Subjectfolderpath,'\',BlockNo{i},'\Nexus\');
 end
 
+%Filessavefolder=[Filessavefolder, sprintf('_%02d',n)];
 Filessavefolder=[Subjectfoldername,'_syncdata (', datestr(datetime('today')),')']
 mkdir(Filessavefolder);
-
 %% Using EEGLab to import data ()
-% Load EEG
-
 %Block-level
 for k=1:length(Rawdatapath)
     EEGfilenames={dir([Rawdatapath(k).EEG '*.vhdr']).name};
     [~, Conditionname, ~]=fileparts(EEGfilenames);
-    Conditionname=cellstr(Conditionname)
+    Conditionname=cellstr(Conditionname);
 
     % Trial-level 
     for l=1:length(EEGfilenames)
@@ -50,7 +53,7 @@ for k=1:length(Rawdatapath)
         EEGTriggers_start=EEG.event(Events(1)).latency;
         EEGTriggers_end=EEG.event(Events(end)-1).latency;
         Sampnb_EEG=EEGTriggers_end-EEGTriggers_start;
-        EEG = pop_select(EEG, 'point',[EEGTriggers_start:EEGTriggers_end]);
+        EEG = pop_select(EEG, 'point',(EEGTriggers_start:EEGTriggers_end));
 
         % Vicon
         acq = btkReadAcquisition([Rawdatapath(k).Nexus,Conditionname{l},'.c3d']);
@@ -58,7 +61,7 @@ for k=1:length(Rawdatapath)
         Vicon_rate = btkGetAnalogFrequency(acq) ;
 
         Chaninfo_FP=fieldnames(EMG); Chaninfo_FP=Chaninfo_FP(1:12);
-        Chaninfo_Rhythm = {'Force_1'}
+        Chaninfo_Rhythm = {'Force_1'};
         Chaninfo_Vicon_trigger = {'Synchronization_1'};
         Chaninfo_EMG = {''};
         Chaninfo_Vicon=[Chaninfo_FP; Chaninfo_Rhythm;Chaninfo_Vicon_trigger];
@@ -67,13 +70,13 @@ for k=1:length(Rawdatapath)
         f=10; n=3; 
         q=f/(2^n-1);
         EMGTrigger_adc=dec2bin(fix(EMG.(Chaninfo_Vicon_trigger{1})/q),n);
-        EMGTrigger_adc=fix(EMG.(Chaninfo_Vicon_trigger{1})/q)*q       
+        EMGTrigger_adc=fix(EMG.(Chaninfo_Vicon_trigger{1})/q)*q;       
         % Identify the start and the end
         TF=islocalmax(EMGTrigger_adc, 'FlatSelection','all'); % select the trigger in the start and the end
         Triggers_vicon=find(TF==1);
         EMGTrigger_start=Triggers_vicon(1);
         EMGTrigger_end=Triggers_vicon(length(Triggers_vicon)); % select the one before the last
-        EMGTrigger_adc=EMGTrigger_adc(EMGTrigger_start:EMGTrigger_end)
+        EMGTrigger_adc=EMGTrigger_adc(EMGTrigger_start:EMGTrigger_end);
         Sampnb_EMG=EMGTrigger_end-EMGTrigger_start;    
 
         % FP
@@ -119,12 +122,14 @@ for k=1:length(Rawdatapath)
         EEG.chanlocs(size(EEG.data,1) ).type='trigger';
         EEG.data = syncdata ;
         EEG.nbchan =  size(EEG.data,1) ;
-        EEG.duration=['Trial duration: EEG=',num2str(Sampnb_EEG/EEG.srate),'s; EMG=', num2str(Sampnb_EMG/Vicon_rate),'s']
+        EEG.duration=['Trial duration: EEG=',num2str(Sampnb_EEG/EEG.srate),'s; EMG=', num2str(Sampnb_EMG/Vicon_rate),'s'];
         
+        Experiment.(['EEG_',Subjectfoldername,'_', BlockNo{k},'_', Conditionname{l}])= EEG;
+        Syncarray.([Subjectfoldername,'_', BlockNo{k},'_', Conditionname{l}])= syncdata;
+
         % Save a .mat and a .set file
-        save([Parentfolderpath,'\',Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.mat'],'EEG','syncdata')
-        EEG = pop_saveset(EEG, [Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.set'],[cd,'\',Filessavefolder]);
+        %save([Parentfolderpath,'\',Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.mat'],'EEG','syncdata')
+        pop_saveset(EEG, [Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.set'],[cd,'\',Filessavefolder]);
     end
 end
-
 end 

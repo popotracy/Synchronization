@@ -22,7 +22,7 @@ addpath(eeglab_path );
 % The script will creat a folder in your current folder and save the generated .set files in this folder. 
 %
 % Please indicate the folder of the participant (Subject-level)
-Subjectfolderpath='C:\Users\s\Desktop\Tracy\Data_syn\Synchronization\P2';  
+Subjectfolderpath='C:\Users\s\Desktop\Tracy\Data_syn\P2';  
 [Parentfolderpath,Subjectfoldername,ext] = fileparts(Subjectfolderpath)
 
 % Recognize the folders (Block-level)
@@ -54,8 +54,12 @@ for k=1:length(Rawdatapath)
         EEGTriggers_start=EEG.event(Events(1)).latency;
         EEGTriggers_end=EEG.event(Events(end)-1).latency;
         Sampnb_EEG=EEGTriggers_end-EEGTriggers_start;
+            EEGTriggers=zeros(1,length(EEG.data))
+            EEGTriggers(EEGTriggers_start)=1
+            EEGTriggers(EEGTriggers_end)=1
+            EEGTriggers=EEGTriggers(EEGTriggers_start:EEGTriggers_end)
         EEG = pop_select(EEG, 'point',[EEGTriggers_start:EEGTriggers_end]);
-
+            
         % Vicon
         acq = btkReadAcquisition([Rawdatapath(k).Nexus,Conditionname{l},'.c3d']);
         EMG = btkGetAnalogs(acq) ;
@@ -72,12 +76,20 @@ for k=1:length(Rawdatapath)
         q=f/(2^n-1);
         EMGTrigger_adc=dec2bin(fix(EMG.(Chaninfo_Vicon_trigger{1})/q),n);
         EMGTrigger_adc=fix(EMG.(Chaninfo_Vicon_trigger{1})/q)*q       
+            EMGt=1:length(EMGTrigger_adc)
+            plot(EMGt/2000,EMGTrigger_adc,'r', EMGt/2000, EMG.Synchronization_1,'g')
+               
         % Identify the start and the end
         TF=islocalmax(EMGTrigger_adc, 'FlatSelection','all'); % select the trigger in the start and the end
         Triggers_vicon=find(TF==1);
         EMGTrigger_start=Triggers_vicon(1);
         EMGTrigger_end=Triggers_vicon(length(Triggers_vicon)); % select the one before the last
         EMGTrigger_adc=EMGTrigger_adc(EMGTrigger_start:EMGTrigger_end)
+            EMGt=1:length(EMGTrigger_adc)
+            plot(EMGt/2000,EMGTrigger_adc,'r', EMGt/2000, EMG.Synchronization_1(EMGTrigger_start:EMGTrigger_end),'g')
+            hold on
+            EEGt=1:length(EEGTriggers)
+            plot(EEGt/2500, EEGTriggers,'b')
         Sampnb_EMG=EMGTrigger_end-EMGTrigger_start;    
 
         % FP
@@ -125,10 +137,15 @@ for k=1:length(Rawdatapath)
         EEG.nbchan =  size(EEG.data,1) ;
         EEG.duration=['Trial duration: EEG=',num2str(Sampnb_EEG/EEG.srate),'s; EMG=', num2str(Sampnb_EMG/Vicon_rate),'s']
         
+        Experiment=struct();
+        Experiment.(['EEG_',Subjectfoldername,'_', BlockNo{k},'_', Conditionname{l}])= EEG;
+        Experiment.(['Sync_',Subjectfoldername,'_', BlockNo{k},'_', Conditionname{l}])= syncdata;
+
         % Save a .mat and a .set file
         save([Parentfolderpath,'\',Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.mat'],'EEG','syncdata')
-        EEG = pop_saveset(EEG, [Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.set'],[cd,'\',Filessavefolder]);
+        pop_saveset(EEG, [Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.set'],[cd,'\',Filessavefolder]);
     end
+
 end
 
 
