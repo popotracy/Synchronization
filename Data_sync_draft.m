@@ -51,13 +51,24 @@ for k=1:length(Rawdatapath)
         % EEG
         EEG=pop_loadbv(Rawdatapath(k).EEG, EEGfilenames{l});
         Events = find(cellfun(@(x) isequal(x, 'Stimulus'), {EEG.event.code})); % 
-        EEGTriggers_start=EEG.event(Events(1)).latency;
-        EEGTriggers_end=EEG.event(Events(end)-1).latency;
+        
+        EEGTriggers=zeros(1,length(EEG.data));
+        for m=1:length(Events),
+            Frames = EEG.event(Events(m)).latency;
+            EEGTriggers(Frames)=1;
+        end
+        TF=islocalmax(EEGTriggers,'MinSeparation',EEG.srate); % select the trigger in the start and the end
+% EEGt=1:length(EEGTriggers);      
+% plot(EEGt,EEGTriggers, EEGt(TF),EEGTriggers(TF),'r*');
+
+        Triggers_EEG=find(TF==1);
+        EEGTriggers_start=Triggers_EEG(1);
+        EEGTriggers_end=Triggers_EEG(end);
         Sampnb_EEG=EEGTriggers_end-EEGTriggers_start;
-            EEGTriggers=zeros(1,length(EEG.data))
-            EEGTriggers(EEGTriggers_start)=1
-            EEGTriggers(EEGTriggers_end)=1
-            EEGTriggers=EEGTriggers(EEGTriggers_start:EEGTriggers_end)
+%             EEGTriggers=zeros(1,length(EEG.data));
+%             EEGTriggers(EEGTriggers_start)=1;
+%             EEGTriggers(EEGTriggers_end)=1;
+%             EEGTriggers=EEGTriggers(EEGTriggers_start:EEGTriggers_end);
         EEG = pop_select(EEG, 'point',[EEGTriggers_start:EEGTriggers_end]);
             
         % Vicon
@@ -75,21 +86,23 @@ for k=1:length(Rawdatapath)
         f=10; n=3; 
         q=f/(2^n-1);
         EMGTrigger_adc=dec2bin(fix(EMG.(Chaninfo_Vicon_trigger{1})/q),n);
-        EMGTrigger_adc=fix(EMG.(Chaninfo_Vicon_trigger{1})/q)*q       
-            EMGt=1:length(EMGTrigger_adc)
-            plot(EMGt/2000,EMGTrigger_adc,'r', EMGt/2000, EMG.Synchronization_1,'g')
-               
+        EMGTrigger_adc=fix(EMG.(Chaninfo_Vicon_trigger{1})/q)*q;       
+             EMGt=1:length(EMGTrigger_adc);
+             plot(EMGt/2000,EMGTrigger_adc, EMGt/2000, EMG.Synchronization_1,'g');
+                
         % Identify the start and the end
-        TF=islocalmax(EMGTrigger_adc, 'FlatSelection','all'); % select the trigger in the start and the end
+        TF=islocalmax(EMGTrigger_adc, 'FlatSelection','first', 'MinSeparation',Vicon_rate); % select the trigger in the start and the end
         Triggers_vicon=find(TF==1);
         EMGTrigger_start=Triggers_vicon(1);
-        EMGTrigger_end=Triggers_vicon(length(Triggers_vicon)); % select the one before the last
-        EMGTrigger_adc=EMGTrigger_adc(EMGTrigger_start:EMGTrigger_end)
-            EMGt=1:length(EMGTrigger_adc)
-            plot(EMGt/2000,EMGTrigger_adc,'r', EMGt/2000, EMG.Synchronization_1(EMGTrigger_start:EMGTrigger_end),'g')
-            hold on
-            EEGt=1:length(EEGTriggers)
-            plot(EEGt/2500, EEGTriggers,'b')
+        EMGTrigger_end=Triggers_vicon(end); % select the one before the last
+        EMGTrigger_adc=EMGTrigger_adc(EMGTrigger_start:EMGTrigger_end);
+%           plot(EMGt,EMGTrigger_adc, EMGt(TF),EMGTrigger_adc(TF),'r*' )
+%           EMGt=1:length(EMGTrigger_adc);
+%           plot(EMGt/2000,EMGTrigger_adc,'r', EMGt/2000, EMG.Synchronization_1(EMGTrigger_start:EMGTrigger_end),'g')
+%           hold on
+%           EEGTriggers=EEGTriggers(EEGTriggers_start:EEGTriggers_end);
+%           EEGt=1:length(EEGTriggers);
+%           plot(EEGt/2500, EEGTriggers,'b');
         Sampnb_EMG=EMGTrigger_end-EMGTrigger_start;    
 
         % FP
@@ -98,7 +111,7 @@ for k=1:length(Rawdatapath)
             Data_FP(:,i)=EMG.(Chaninfo_FP{i})( EMGTrigger_start:EMGTrigger_end,:) ; % transpose the matrix
         end
         vq_FP = interp1(1:length(Data_FP),Data_FP,linspace(1,length(Data_FP),length(EEG.data)),'spline');
-        vq_FP = vq_FP'
+        vq_FP = vq_FP';
 
         % Sound
         Data_Rhythm=[];
