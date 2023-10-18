@@ -1,23 +1,50 @@
-% Folder structure: 
+% DataSyn - Synchronize one or more EEG dataset (BrainVision format ex... 
+% *.vhdr, *.eeg, *.vmrk) into structures. 
 %
-%     Subject-level folder (e.g., P1, P2) 
-%               |
-%              \|/
-%               V
-%       Block-level folder (e.g., visit1, visit2 or block1, block2...)
-%               |
-%              \|/
-%               V
-%   Condition-level folder (e.g., condition1, condition2 or trial 1, trial2...)
+% Instruction:
+% 1. Before using the function, please make sure you download:
+%    1) eeglab toolbox (locally): "https://sccn.ucsd.edu/eeglab/download.php"
+%                     (remotely): "\\10.89.24.15\e\Projet_EEG_Posture\eeglab14_1_2b\functions"        
+%    2) BTK toolbox    (locally): ""  *cannot run in MacOS M1/M2 
+%                     (remotely): "\\10.89.24.15\e\Projet_ForceMusculaire\Fabien_ForceMusculaire\functions\btk"
+% 
+% 2. Add both of them into your MATLAB path if needed. 
+% 
+% 3. Please indicate the folder of the participant (Subject-level), and follow
+%    the folder structure if possible.
 %
-% The script will creat a folder in your current folder and save the generated .set files in this folder. 
+%    Folder structure: 
 %
-% Please indicate the folder of the participant (Subject-level)
+%       Subject-level folder (e.g., P1, P2) 
+%                   |
+%                  \|/
+%                   V
+%           Block-level folder (e.g., visit1, visit2 or block1, block2...)
+%                   |
+%                  \|/
+%                   V
+%       Condition-level folder (e.g., condition1, condition2 or trial 1, trial2...)
+%
+% 4. The script will creat a folder in your current cd and save the generated 
+%    *.set files there. 
+%
 % Usage:
 %   >> DataSyn('Subjectfolderpath');
-%   >> EEG = pop_saveset( EEG, 'key', 'val', ...); 
+%   >> [Experiment, Syncarray] = DataSyn('Subjectfolderpath'); 
+%
+%
 
 function [Experiment, Syncarray]=DataSyn(Subjectfolderpath)
+
+% Uncomment below if you haven't added the path of "eeglab" and "btk" 
+% in your MATLAB. You can either access the toolboxes locally or remotely,
+% please check the help section: 
+% 
+% eeglab_path = fileparts(which('eeglab.m'));
+% addpath(eeglab_path);
+% addpath(genpath('please add your btk toolbox path'));
+%
+
 Experiment=struct();
 Syncarray=struct();
 
@@ -130,9 +157,13 @@ for k=1:length(Rawdatapath)
         EEG.nbchan =  size(EEG.data,1) ;
         EEG.duration=['Trial duration: EEG=',num2str(Sampnb_EEG/EEG.srate),'s; EMG=', num2str(Sampnb_EMG/Vicon_rate),'s'];
         
-        Experiment.(['EEG_',Subjectfoldername,'_', BlockNo{k},'_', Conditionname{l}])= EEG;
-        Syncarray.([Subjectfoldername,'_', BlockNo{k},'_', Conditionname{l}])= syncdata;
-
+        if nargout>1
+            Experiment.(['EEG_',Subjectfoldername,'_', BlockNo{k},'_', Conditionname{l}])= EEG;
+            Syncarray.([Subjectfoldername,'_', BlockNo{k},'_', Conditionname{l}])= syncdata;
+        else 
+            Experiment.(['EEG_',Subjectfoldername,'_', BlockNo{k},'_', Conditionname{l}])= EEG;
+        end 
+        
         % Save a .mat and a .set file
         %save([Parentfolderpath,'\',Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.mat'],'EEG','syncdata')
         pop_saveset(EEG, [Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.set'],[cd,'\',Filessavefolder]);

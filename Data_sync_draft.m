@@ -53,7 +53,7 @@ for k=1:length(Rawdatapath)
         Events = find(cellfun(@(x) isequal(x, 'Stimulus'), {EEG.event.code})); % 
         
         EEGTriggers=zeros(1,length(EEG.data));
-        for m=1:length(Events),
+        for m=1:length(Events)
             Frames = EEG.event(Events(m)).latency;
             EEGTriggers(Frames)=1;
         end
