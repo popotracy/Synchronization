@@ -5,7 +5,7 @@
 % 1. Before using the function, please make sure you download:
 %    1) eeglab toolbox (locally): "https://sccn.ucsd.edu/eeglab/download.php"
 %                     (remotely): "\\10.89.24.15\e\Projet_EEG_Posture\eeglab14_1_2b\functions"        
-%    2) BTK toolbox    (locally): ""  *cannot run in MacOS M1/M2 
+%    2) BTK toolbox    (locally): "https://code.google.com/archive/p/b-tk/downloads"  *cannot run in MacOS M1/M2 
 %                     (remotely): "\\10.89.24.15\e\Projet_ForceMusculaire\Fabien_ForceMusculaire\functions\btk"
 % 
 % 2. Add both of them into your MATLAB path if needed. 

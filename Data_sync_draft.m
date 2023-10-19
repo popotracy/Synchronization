@@ -22,7 +22,7 @@ addpath(eeglab_path );
 % The script will creat a folder in your current folder and save the generated .set files in this folder. 
 %
 % Please indicate the folder of the participant (Subject-level)
-Subjectfolderpath='C:\Users\s\Desktop\Tracy\Data_syn\P2';  
+Subjectfolderpath='/Users/tracy/Desktop/UdeM/P2';  
 [Parentfolderpath,Subjectfoldername,ext] = fileparts(Subjectfolderpath)
 
 % Recognize the folders (Block-level)
