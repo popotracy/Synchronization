@@ -22,7 +22,7 @@ addpath(eeglab_path );
 % The script will creat a folder in your current folder and save the generated .set files in this folder. 
 %
 % Please indicate the folder of the participant (Subject-level)
-Subjectfolderpath='/Users/tracy/Desktop/UdeM/P2';  
+Subjectfolderpath='C:\Users\fh16095\Desktop\UdeM\Dataset example\P27';  
 [Parentfolderpath,Subjectfoldername,ext] = fileparts(Subjectfolderpath)
 
 % Recognize the folders (Block-level)
@@ -157,7 +157,9 @@ for k=1:length(Rawdatapath)
         % Save a .mat and a .set file
         save([Parentfolderpath,'\',Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.mat'],'EEG','syncdata')
         pop_saveset(EEG, [Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.set'],[cd,'\',Filessavefolder]);
+
     end
+  
 
 end
 

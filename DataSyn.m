@@ -7,6 +7,7 @@
 %                     (remotely): "\\10.89.24.15\e\Projet_EEG_Posture\eeglab14_1_2b\functions"        
 %    2) BTK toolbox    (locally): "https://code.google.com/archive/p/b-tk/downloads"  *cannot run in MacOS M1/M2 
 %                     (remotely): "\\10.89.24.15\e\Projet_ForceMusculaire\Fabien_ForceMusculaire\functions\btk"
+%    3) FieldTrip toolbox (MATLAB add-on): "https://www.mathworks.com/matlabcentral/fileexchange/55891-fieldtrip#:~:text=FieldTrip%20is%20the%20MATLAB%20software%20toolbox%20for%20MEG,the%20Netherlands%20in%20close%20collaboration%20with%20collaborating%20institutes."
 % 
 % 2. Add both of them into your MATLAB path if needed. 
 % 
@@ -40,10 +41,12 @@ function [Experiment, Syncarray]=DataSyn(Subjectfolderpath)
 % in your MATLAB. You can either access the toolboxes locally or remotely,
 % please check the help section: 
 % 
-% eeglab_path = fileparts(which('eeglab.m'));
+% eeglab_path = which('eeglab.m');
 % addpath(eeglab_path);
 % addpath(genpath('please add your btk toolbox path'));
 %
+% [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
+eeglab('redraw');
 
 Experiment=struct();
 Syncarray=struct();
@@ -166,7 +169,47 @@ for k=1:length(Rawdatapath)
         
         % Save a .mat and a .set file
         %save([Parentfolderpath,'\',Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.mat'],'EEG','syncdata')
-        pop_saveset(EEG, [Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.set'],[cd,'\',Filessavefolder]);
+        setfilename= [Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.set']
+        %pop_saveset(EEG,setfilename,[cd,'\',Filessavefolder]);
+        pop_saveset(EEG,setfilename,[cd]);
+
     end
+
+    % setfile to BIDs
+    cfg = [];
+    cfg.method    = 'convert';
+    cfg.datatype  = 'eeg';
+
+  % specify the input file name, here we are using the same file for every subject
+  cfg.dataset   = setfilename;  % Run the dataset in the syncfolder
+
+  % specify the output directory
+  cfg.bidsroot  = 'bids';
+  cfg.sub       = Subjectfoldername;
+
+  % specify the information for the participants.tsv file
+  % this is optional, you can also pass other pieces of info
+  %   cfg.participants.age = age(subindx);
+  %   cfg.participants.sex = sex{subindx};
+
+  % specify the information for the scans.tsv file
+  % this is optional, you can also pass other pieces of info
+  cfg.scans.acq_time = datestr(now, 'yyyy-mm-ddThh:MM:SS'); % according to RFC3339
+
+  % specify some general information that will be added to the eeg.json file
+  cfg.InstitutionName             = 'University of Montreal';
+  cfg.InstitutionalDepartmentName = 'S2M';
+  cfg.InstitutionAddress          = 'CEPSUM, Laval';
+
+  % provide the mnemonic and long description of the task
+  cfg.TaskName        =  Conditionname{l}; % how to read... 
+  cfg.TaskDescription = 'Subjects were responding as fast as possible upon a change in a visually presented stimulus.';
+
+  % these are EEG specific
+  cfg.eeg.PowerLineFrequency = 60;   % since recorded in the USA
+  cfg.eeg.EEGReference       = 'M1'; % actually I do not know, but let's assume it was left mastoid
+
+  data2bids(cfg);
+
 end
 end 
