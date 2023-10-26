@@ -4,12 +4,12 @@
 % Instruction:
 % 1. Before using the function, please make sure you download:
 %    1) eeglab toolbox (locally): "https://sccn.ucsd.edu/eeglab/download.php"
-%                     (remotely): "\\10.89.24.15\e\Projet_EEG_Posture\eeglab14_1_2b\functions"
+%                  or (remotely): "\\10.89.24.15\e\Projet_EEG_Posture\eeglab14_1_2b\functions"
 %    2) BTK toolbox    (locally): "https://code.google.com/archive/p/b-tk/downloads"  *cannot run in MacOS M1/M2
-%                     (remotely): "\\10.89.24.15\e\Projet_ForceMusculaire\Fabien_ForceMusculaire\functions\btk"
+%                  or (remotely): "\\10.89.24.15\e\Projet_ForceMusculaire\Fabien_ForceMusculaire\functions\btk"
 %    3) FieldTrip toolbox (MATLAB add-on): "https://www.mathworks.com/matlabcentral/fileexchange/55891-fieldtrip#:~:text=FieldTrip%20is%20the%20MATLAB%20software%20toolbox%20for%20MEG,the%20Netherlands%20in%20close%20collaboration%20with%20collaborating%20institutes."
 %
-% 2. Add both of them into your MATLAB path if needed.
+% 2. Add all of them into your MATLAB path if needed.
 %       ***Regarding FieldTrip toolbox, please be aware that you should NOT do:
 %       "addpath(genpath('/home/user/fieldtrip'))" (ref: https://www.fieldtriptoolbox.org/faq/should_i_add_fieldtrip_with_all_subdirectories_to_my_matlab_path/)
 %
@@ -39,6 +39,7 @@
 % Usage:
 %   >> DataSyn('Subjectfolderpath');
 %   >> [Experiment, Syncarray] = DataSyn('Subjectfolderpath');
+%   >> Experiment =  DataSyn('Subjectfolderpath')
 %
 %
 
@@ -48,12 +49,12 @@ function [Experiment, Syncarray]=DataSyn(Subjectfolderpath)
 % in your MATLAB. You can either access the toolboxes locally or remotely,
 % please check the help section:
 
-% eeglab_path = which('eeglab.m');
-% addpath(eeglab_path);
-% addpath(genpath('please add your btk toolbox path'));
+% addpath(genpath('your eeglab_path'));
+% addpath(genpath('you rbtk toolbox path'));
+% Please indicate your Fieldtrip_path below:
+Fieldtrip_path = 'C:\Users\fh16095\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\FieldTrip'
 
 % [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
-
 eeglab('redraw');
 
 Experiment=struct();
@@ -177,7 +178,7 @@ for k=1:length(Rawdatapath)
 
         % Save a .set file
         %save([Parentfolderpath,'\',Subjectfoldername,'_',BlockNo{k},'_', Conditionname{l},'_sync.mat'],'EEG','syncdata')
-        setfilename= [Subjectfoldername,'_',SessionNo{k},'_', Conditionname{l},'_sync.set']
+        setfilename= ['sub-', Subjectfoldername,'_ses-',SessionNo{k},'_task-', Conditionname{l},'_eeg.set'];
         pop_saveset(EEG,setfilename,[cd,'\',Filessavefolder]);
         %pop_saveset(EEG,setfilename,[cd]);
         olderfolder = cd([cd,'\',Filessavefolder])
@@ -198,10 +199,9 @@ for k=1:length(Rawdatapath)
         % this is optional, you can also pass other pieces of info
         %   cfg.participants.age = age(subindx);
         %   cfg.participants.sex = sex{subindx};
-
         % specify the information for the scans.tsv file
         % this is optional, you can also pass other pieces of info
-        %cfg.scans.acq_time = datestr(now, 'yyyy-mm-ddThh:MM:SS'); % according to RFC3339
+        %   cfg.scans.acq_time = datestr(now, 'yyyy-mm-ddThh:MM:SS'); % according to RFC3339
 
         % specify some general information that will be added to the eeg.json file
         cfg.InstitutionName             = 'University of Montreal';
@@ -217,13 +217,11 @@ for k=1:length(Rawdatapath)
         cfg.eeg.PowerLineFrequency = 60;   % since recorded in the USA
         cfg.eeg.EEGReference       = 'M1'; % actually I do not know, but let's assume it was left mastoid
 
-        addpath 'C:\Users\fh16095\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\FieldTrip'
+        addpath(Fieldtrip_path)
         ft_defaults;
         data2bids(cfg);
-        cfg.method    = 'convert';
-        addpath 'C:\Users\fh16095\AppData\Roaming\MathWorks\MATLAB Add-Ons\Collections\FieldTrip'
-        ft_defaults;
-        data2bids(cfg);
+        %cfg.method    = 'convert';
+        % data2bids(cfg);
 
         %back to oldfolder
         cd(olderfolder);

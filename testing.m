@@ -1,7 +1,7 @@
 clear all
-Subjectfolderpath='C:\Users\fh16095\Desktop\UdeM\Dataset example\P27'
+Subjectfolderpath='C:\Users\fh16095\Desktop\UdeM\Dataset example\P2'
 
-[Exp1]=DataSyn('C:\Users\fh16095\Desktop\UdeM\Dataset example\P27')
+[Exp1]=DataSyn('C:\Users\fh16095\Desktop\UdeM\Dataset example\P2')
 startup
 
 restoredefaultpath
