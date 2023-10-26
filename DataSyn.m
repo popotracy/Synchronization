@@ -45,10 +45,9 @@
 
 function [Experiment, Syncarray]=DataSyn(Subjectfolderpath)
 
-% Uncomment below if you haven't added the path of "eeglab" and "btk"
+% Uncomment below if you haven't added the path of "eeglab", "btk" and "FieldTrip"
 % in your MATLAB. You can either access the toolboxes locally or remotely,
 % please check the help section:
-
 % addpath(genpath('your eeglab_path'));
 % addpath(genpath('you rbtk toolbox path'));
 % Please indicate your Fieldtrip_path below:
