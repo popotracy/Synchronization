@@ -1,8 +1,8 @@
 % DataSyn - Synchronize one or more EEG dataset (BrainVision format ex...
-% *.vhdr, *.eeg, *.vmrk) into structures.
+% *.vhdr, *.eeg, *.vmrk) into .set file with BIDs structure.
 %
 % Instruction:
-% 1. Before using the function, please make sure you download:
+% 1. Before using the function, please make sure you have downloaded:
 %    1) eeglab toolbox (locally): "https://sccn.ucsd.edu/eeglab/download.php"
 %                  or (remotely): "\\10.89.24.15\e\Projet_EEG_Posture\eeglab14_1_2b\functions"
 %    2) BTK toolbox    (locally): "https://code.google.com/archive/p/b-tk/downloads"  *cannot run in MacOS M1/M2
@@ -33,8 +33,8 @@
 %            Trial-level folder (e.g., run1, run2 or trial1, trial2)
 %
 %
-% 4. The script will creat a folder in your current cd and save the generated
-%    *.set files there.
+% 4. The script will creat a folder in your current cd and save the created  
+%    .set file into a bidsformate structure.
 %
 % Usage:
 %   >> DataSyn('Subjectfolderpath');
